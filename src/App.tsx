@@ -1,26 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
+import { fetchActivityData } from './services/api';
+import ActivityChart from './components/ActivityCharts';
+import ActivityTable from './components/ActivityTable';
+import FilterControls from './components/FilterControls';
 import './App.css';
 
-function App() {
+const App: React.FC = () => {
+  const [data, setData] = useState<any[]>([]);
+  const [filters, setFilters] = useState<any>({ activityType: '' });
+
+  useEffect(() => {
+    const getData = async () => {
+      const result = await fetchActivityData();
+      setData(result);
+    };
+
+    getData();
+  }, []);
+
+  const filteredData = filters.activityType
+    ? data.map((day) => ({
+        ...day,
+        items: {
+          ...day.items,
+          children: day.items.children.filter((item: any) => item.label === filters.activityType),
+        },
+      }))
+    : data;
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Developer Activity Dashboard</h1>
+      <FilterControls filters={filters} setFilters={setFilters} />
+      <ActivityChart data={filteredData} />
+      <ActivityTable data={filteredData} />
     </div>
   );
-}
+};
 
 export default App;
